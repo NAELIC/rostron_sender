@@ -1,0 +1,21 @@
+#include "rostron_sender/net/udp_sender.h"
+
+using namespace boost;
+
+UDPSender::UDPSender(std::string address, unsigned int port,
+                     asio::io_context &io_context)
+    : endpoint_(asio::ip::make_address(address), port),
+      socket_(io_context, endpoint_.protocol())
+{
+    socket_.set_option(asio::ip::multicast::hops(1));
+}
+
+void UDPSender::send(RobotControl &controlPacket)
+{
+    // TODO : Doesn't ignore the error
+    system::error_code ignored_error;
+    boost::asio::streambuf b;
+    std::ostream os(&b);
+    controlPacket.SerializeToOstream(&os);
+    socket_.send_to(b.data(), endpoint_, 0, ignored_error);
+}
