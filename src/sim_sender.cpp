@@ -10,7 +10,7 @@
 
 using std::placeholders::_1;
 
-// TODO : 
+// TODO :
 // - Nettoyer le code
 // - Mettre le control du robot en fonction d'un paramètres.
 
@@ -20,17 +20,18 @@ class SimSender : public rclcpp::Node
 {
 public:
   SimSender()
-      : Node("sim_sender"),
-      sender_("0.0.0.0", 10301, io)
+      : Node("sim_sender"), sender_("0.0.0.0", 10301, io)
   {
-    subscription_ = this->create_subscription<rostron_interfaces::msg::Order>( // CHANGE
+    this->declare_parameter<int>("control_port", 10301);
+    this->sender_ = UDPSender("0.0.0.0", this->get_parameter("control_port").as_int(), io);
+    subscription_ = this->create_subscription<rostron_interfaces::msg::Order>(
         "order", 10, std::bind(&SimSender::topic_callback, this, _1));
   }
 
 private:
-  void topic_callback(const rostron_interfaces::msg::Order::SharedPtr msg) // CHANGE
+  void topic_callback(const rostron_interfaces::msg::Order::SharedPtr msg)
   {
-    RCLCPP_INFO(this->get_logger(), "I heard: '%d'", msg->id); // CHANGE
+    // RCLCPP_INFO(this->get_logger(), "I heard: '%d'", msg->id);
     auto control = RobotControl();
     auto command = control.add_robot_commands();
 
@@ -47,9 +48,8 @@ private:
     sender_.send(control);
   }
 
-  rclcpp::Subscription<rostron_interfaces::msg::Order>::SharedPtr subscription_; // CHANGE
+  rclcpp::Subscription<rostron_interfaces::msg::Order>::SharedPtr subscription_;
   UDPSender sender_;
-  // boost::asio::io_context io;
 };
 
 int main(int argc, char *argv[])
