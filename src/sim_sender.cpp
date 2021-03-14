@@ -16,14 +16,16 @@ using std::placeholders::_1;
 
 boost::asio::io_context io;
 
+const std::string port_params = "port";
+
 class SimSender : public rclcpp::Node
 {
 public:
   SimSender()
       : Node("sim_sender"), sender_("0.0.0.0", 10301, io)
   {
-    this->declare_parameter<int>("control_port", 10301);
-    this->sender_ = UDPSender("0.0.0.0", this->get_parameter("control_port").as_int(), io);
+    this->declare_parameter<int>(port_params, 10301);
+    this->sender_ = UDPSender("0.0.0.0", this->get_parameter(port_params).as_int(), io);
     subscription_ = this->create_subscription<rostron_interfaces::msg::Order>(
         "order", 10, std::bind(&SimSender::topic_callback, this, _1));
   }
