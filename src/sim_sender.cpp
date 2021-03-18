@@ -33,7 +33,6 @@ public:
 private:
   void topic_callback(const rostron_interfaces::msg::Order::SharedPtr msg)
   {
-    // RCLCPP_INFO(this->get_logger(), "I heard: '%d'", msg->id);
     auto control = RobotControl();
     auto command = control.add_robot_commands();
 
