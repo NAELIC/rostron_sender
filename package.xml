@@ -3,7 +3,7 @@
 <package format="3">
   <name>rostron_sender</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROSTron packages to send data with tools or micro-controllers.</description>
   <maintainer email="contact@etienne-schmitz.com">Etienne SCHMITZ</maintainer>
   <license>MIT</license>
 
