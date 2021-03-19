@@ -10,10 +10,6 @@
 
 using std::placeholders::_1;
 
-// TODO :
-// - Nettoyer le code
-// - Mettre le control du robot en fonction d'un paramètres.
-
 boost::asio::io_context io;
 
 const std::string port_params = "port";
@@ -31,20 +27,36 @@ public:
   }
 
 private:
+  // TODO (#1) : Check parameters
+  // TODO (#2) : Donner la possibilité d'envoyer plusieurs ordres à des robots !
   void topic_callback(const rostron_interfaces::msg::Order::SharedPtr msg)
   {
+    const auto max_ball_speed = 6.5;
+
     auto control = RobotControl();
     auto command = control.add_robot_commands();
+    command->set_id(msg->id);
 
-    // Todo : Check if message is valid.
+    // Speed
     auto mv_command = command->mutable_move_command();
     auto local = mv_command->mutable_local_velocity();
     local->set_angular(msg->velocity.angular.z);
     local->set_forward(msg->velocity.linear.x);
     local->set_left(msg->velocity.linear.y);
+    
+    // Kicker, Dribbler
+    command->set_dribbler_speed(msg->spin_power);
 
-    command->set_id(msg->id);
-    // TODO : Add kick && dribbler
+    if (msg->kick_type == msg->FLAT_KICK)
+    {
+      command->set_kick_angle(0);
+      command->set_kick_speed(max_ball_speed * msg->kick_power);
+    }
+    else if (msg->kick_type == msg->CHIP_KICK)
+    {
+      command->set_kick_angle(45);
+      command->set_kick_speed(max_ball_speed * msg->kick_power);
+    }
 
     sender_.send(control);
   }
