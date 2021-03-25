@@ -45,17 +45,17 @@ private:
     local->set_left(msg->velocity.linear.y);
     
     // Kicker, Dribbler
-    command->set_dribbler_speed(msg->spin_power);
+    command->set_dribbler_speed(msg->hardware.spin_power);
 
-    if (msg->kick_type == msg->FLAT_KICK)
+    if (msg->hardware.kick_type == msg->hardware.FLAT_KICK)
     {
       command->set_kick_angle(0);
-      command->set_kick_speed(max_ball_speed * msg->kick_power);
+      command->set_kick_speed(max_ball_speed * msg->hardware.kick_power);
     }
-    else if (msg->kick_type == msg->CHIP_KICK)
+    else if (msg->hardware.kick_type == msg->hardware.CHIP_KICK)
     {
       command->set_kick_angle(45);
-      command->set_kick_speed(max_ball_speed * msg->kick_power);
+      command->set_kick_speed(max_ball_speed * msg->hardware.kick_power);
     }
 
     sender_.send(control);
