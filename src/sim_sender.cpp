@@ -12,18 +12,30 @@ using std::placeholders::_1;
 
 boost::asio::io_context io;
 
-const std::string port_params = "port";
-
 class SimSender : public rclcpp::Node
 {
 public:
   SimSender()
-      : Node("sim_sender"), sender_("0.0.0.0", 10301, io)
+      : Node("sim_sender"), sender_(create_socket())
   {
-    this->declare_parameter<int>(port_params, 10301);
-    this->sender_ = UDPSender("0.0.0.0", this->get_parameter(port_params).as_int(), io);
     subscription_ = this->create_subscription<rostron_interfaces::msg::Order>(
         "order", 10, std::bind(&SimSender::topic_callback, this, _1));
+  }
+
+  UDPSender create_socket()
+  {
+    const auto port_params = "port";
+    const auto multicast_params = "multicast_address";
+
+    this->declare_parameter<int>(port_params, 10301);
+    int port = this->get_parameter(port_params).as_int();
+    
+    this->declare_parameter<std::string>(multicast_params, "0.0.0.0");
+    std::string multicast_address = this->get_parameter(multicast_params).as_string();
+
+    RCLCPP_INFO(get_logger(), "Creating UDP Socket on %d...", port);
+
+    return UDPSender(multicast_address, port, io);
   }
 
 private:
@@ -43,7 +55,7 @@ private:
     local->set_angular(msg->velocity.angular.z);
     local->set_forward(msg->velocity.linear.x);
     local->set_left(msg->velocity.linear.y);
-    
+
     // Kicker, Dribbler
     command->set_dribbler_speed(msg->hardware.spin_power);
 
