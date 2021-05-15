@@ -136,10 +136,26 @@ private:
     RCLCPP_DEBUG(get_logger(), "End sending control...\n");
   }
 
+  /**
+   * \brief Subscribtion for "order" topic.
+   * \deprecated
+   */
   rclcpp::Subscription<rostron_interfaces::msg::Order>::SharedPtr control_subscription_;
+  /**
+   * \brief Subscribtion for "orders" topic.
+   */
   rclcpp::Subscription<rostron_interfaces::msg::Orders>::SharedPtr controls_subscription_;
 
+  /**
+   * \brief UDP Sender socket server.
+   * 
+   * Wrapper function to handler an UDP socket to send commands of the simulator.
+   */
   UDPSender sender_;
+
+  /**
+   * \brief Constant about the maximum ball speed of the ball.
+   */
   float max_ball_speed;
 };
 
