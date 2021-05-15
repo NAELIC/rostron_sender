@@ -12,7 +12,6 @@ UDPSender::UDPSender(std::string multicast_address, unsigned int port,
 
 void UDPSender::send(RobotControl &controlPacket)
 {
-    // TODO : Doesn't ignore the error
     system::error_code ignored_error;
     boost::asio::streambuf b;
     std::ostream os(&b);
