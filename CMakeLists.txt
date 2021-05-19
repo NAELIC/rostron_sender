@@ -19,7 +19,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rostron_interfaces REQUIRED)
-find_package(rclcpp_action REQUIRED)
 
 ## Boost
 find_package(Boost 1.56 REQUIRED COMPONENTS system)
@@ -47,7 +46,7 @@ SET(
 
 add_executable(sim_sender ${SRCS_SIM_SENDER} ${HEADERS_SIM_SENDER})
 target_link_libraries(sim_sender ${Protobuf_LIBRARIES} NAELIC::Proto ${Boost_SYSTEM_LIBRARY})
-ament_target_dependencies(sim_sender rclcpp rostron_interfaces rclcpp_action)
+ament_target_dependencies(sim_sender rclcpp rostron_interfaces)
 
 
 target_include_directories(sim_sender PUBLIC
