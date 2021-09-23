@@ -19,6 +19,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rostron_interfaces REQUIRED)
+find_package(serial REQUIRED)
 
 ## Boost
 find_package(Boost 1.56 REQUIRED COMPONENTS system)
@@ -48,7 +49,6 @@ add_executable(sim_sender ${SRCS_SIM_SENDER} ${HEADERS_SIM_SENDER})
 target_link_libraries(sim_sender ${Protobuf_LIBRARIES} NAELIC::Proto ${Boost_SYSTEM_LIBRARY})
 ament_target_dependencies(sim_sender rclcpp rostron_interfaces)
 
-
 target_include_directories(sim_sender PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -60,6 +60,24 @@ install(TARGETS sim_sender
 
 ament_export_dependencies(Boost Protobuf)
 ament_export_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${Protobuf_LIBRARIES} NAELIC::Proto)
+
+SET(
+  SRCS_SERIAL_SENDER
+  src/test_sender.cpp
+)
+
+add_executable(serial_sender ${SRCS_SERIAL_SENDER})
+ament_target_dependencies(serial_sender rclcpp rostron_interfaces serial)
+
+target_include_directories(serial_sender PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS serial_sender
+  DESTINATION lib/${PROJECT_NAME})
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
