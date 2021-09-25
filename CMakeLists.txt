@@ -63,7 +63,7 @@ ament_export_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${Protobuf_LIBRARIES} 
 
 SET(
   SRCS_SERIAL_SENDER
-  src/test_sender.cpp
+  src/serial.cpp
 )
 
 add_executable(serial_sender ${SRCS_SERIAL_SENDER})
