@@ -26,10 +26,6 @@ public:
    */
   SimSender() : Node("sim_sender"), sender_(create_socket()), max_ball_speed(6.5)
   {
-    // Deprecated !
-    control_subscription_ = this->create_subscription<rostron_interfaces::msg::Order>(
-        "order", 10, std::bind(&SimSender::control_callback, this, _1));
-
     controls_subscription_ = this->create_subscription<rostron_interfaces::msg::Orders>(
         "orders", 10, std::bind(&SimSender::controls_callback, this, _1));
   }
@@ -54,41 +50,6 @@ public:
   }
 
 private:
-  /**
-   * \brief Callback to send control of one robot.
-   *
-   * \deprecated Use multiple send robot order instead !
-   */
-  void control_callback(const rostron_interfaces::msg::Order::SharedPtr msg)
-  {
-    auto control = RobotControl();
-    auto command = control.add_robot_commands();
-    command->set_id(msg->id);
-
-    // Speed
-    auto mv_command = command->mutable_move_command();
-    auto local = mv_command->mutable_local_velocity();
-    local->set_angular(msg->velocity.angular.z);
-    local->set_forward(msg->velocity.linear.x);
-    local->set_left(msg->velocity.linear.y);
-
-    // Kicker, Dribbler
-    command->set_dribbler_speed(msg->hardware.spin_power);
-
-    if (msg->hardware.kick_type == msg->hardware.FLAT_KICK)
-    {
-      command->set_kick_angle(0);
-      command->set_kick_speed(max_ball_speed * msg->hardware.kick_power);
-    }
-    else if (msg->hardware.kick_type == msg->hardware.CHIP_KICK)
-    {
-      command->set_kick_angle(45);
-      command->set_kick_speed(max_ball_speed * msg->hardware.kick_power);
-    }
-
-    sender_.send(control);
-  }
-
   /**
    * \brief Callback to send control for multiple robots.
    */
@@ -136,11 +97,6 @@ private:
     RCLCPP_DEBUG(get_logger(), "End sending control...\n");
   }
 
-  /**
-   * \brief Subscribtion for "order" topic.
-   * \deprecated
-   */
-  rclcpp::Subscription<rostron_interfaces::msg::Order>::SharedPtr control_subscription_;
   /**
    * \brief Subscribtion for "orders" topic.
    */
