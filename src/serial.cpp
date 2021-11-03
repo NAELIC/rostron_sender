@@ -1,5 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
-#include <rostron_interfaces/msg/orders.hpp>
+#include "rostron_interfaces/msg/commands.hpp"
+
 #include "serial/serial.h"
 #include <iostream>
 
@@ -31,16 +32,14 @@ class SerialNode : public rclcpp::Node
 {
 public:
   /**
-   * Constructor.
-   *
-   * Create a UDP Server and two ROS subscribtion topic :
-   * - order : send order for one robot.
-   * - orders : send order for multiple robots.
+   * Subscribe to a commands topic to send on robots.
+   * 
+   * \todo Add a parameter to choose port, baudrate.
    */
   SerialNode() : Node("serial"), max_ball_speed(6.5)
   {
-    controls_subscription_ = this->create_subscription<rostron_interfaces::msg::Orders>(
-        "orders", 10, std::bind(&SerialNode::orders_callback, this, _1));
+    commands_subscription_ = this->create_subscription<rostron_interfaces::msg::Commands>(
+        "commands", 10, std::bind(&SerialNode::commands_callback, this, _1));
 
     std::string port("/dev/ttyACM0");
     unsigned long baud = 9600;
@@ -54,13 +53,13 @@ public:
 
 private:
   /**
-   * \brief Callback to send control for multiple robots.
+   * \brief Callback to send commands for multiple robots.
    */
-  void orders_callback(const rostron_interfaces::msg::Orders::SharedPtr msg_orders)
+  void commands_callback(const rostron_interfaces::msg::Commands::SharedPtr msg_commands)
   {
-    RCLCPP_DEBUG(get_logger(), "Send control...");
+    RCLCPP_DEBUG(get_logger(), "Send commands...");
 
-    for (auto msg : msg_orders->orders)
+    for (auto msg : msg_commands->commands)
     {
       packet_robot sending;
 
@@ -82,28 +81,34 @@ private:
       {
         RCLCPP_DEBUG(get_logger(), "--- kick : FLAT");
         RCLCPP_INFO(get_logger(), "TODO");
+        sending.actions |= ACTION_KICK1;
       }
       else if (msg.hardware.kick_type == msg.hardware.CHIP_KICK)
       {
         RCLCPP_DEBUG(get_logger(), "--- kick : CHIP");
         RCLCPP_INFO(get_logger(), "TODO");
+        sending.actions |= ACTION_KICK2;
       }
+
+      if(msg.hardware.spin_power > 0)
+      {
+        RCLCPP_DEBUG(get_logger(), "--- dribbler : ON");
+        sending.actions |= ACTION_DRIBBLE;
+        // sending.actions.spin_power = msg.hardware.spin_power;
+      }
+
       mySerial->write((uint8_t*)&sending, sizeof(packet_robot));
     }
 
 
-    RCLCPP_DEBUG(get_logger(), "End sending control...\n");
+    RCLCPP_DEBUG(get_logger(), "End sending command...\n");
   }
 
   /**
-   * \brief Subscribtion for "order" topic.
-   * \deprecated
+   * \brief Subscribtion for "commands" topic.
    */
-  rclcpp::Subscription<rostron_interfaces::msg::Order>::SharedPtr control_subscription_;
-  /**
-   * \brief Subscribtion for "orders" topic.
-   */
-  rclcpp::Subscription<rostron_interfaces::msg::Orders>::SharedPtr controls_subscription_;
+  rclcpp::Subscription<rostron_interfaces::msg::Commands>::SharedPtr commands_subscription_;
+
 
   /**
    * \brief Constant about the maximum ball speed of the ball.
