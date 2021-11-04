@@ -1,4 +1,4 @@
-#include "rostron_sender/net/udp_sender.h"
+#include "rostron_sender/com/socket.h"
 
 using namespace boost;
 

@@ -1,29 +1,11 @@
 #include <rclcpp/rclcpp.hpp>
-#include "rostron_interfaces/msg/commands.hpp"
-
-#include "serial/serial.h"
 #include <iostream>
 
-#define ACTION_ON (1 << 0)
-#define ACTION_KICK1 (1 << 1)
-#define ACTION_KICK2 (1 << 2)
-#define ACTION_DRIBBLE (1 << 3)
-#define ACTION_CHARGE (1 << 5)
-#define ACTION_TARE_ODOM (1 << 7)
+#include "rostron_sender/com/mainboard.h"
+#include "rostron_interfaces/msg/commands.hpp"
 
 using std::placeholders::_1;
 
-typedef struct
-{
-  uint8_t id;
-  uint8_t actions;
-
-  float x_speed; // Kinematic orders [mm/s]
-  float y_speed;
-  float t_speed; // Rotation in [mrad/s]
-
-  uint8_t kickPower; // Kick power (this is a duration in [x25 uS])
-} __attribute__((packed)) packet_robot;
 
 /**
  * ROS Node to send robot control packet in serial.
@@ -36,22 +18,29 @@ public:
    * 
    * \todo Add a parameter to choose port, baudrate.
    */
-  SerialNode() : Node("serial"), max_ball_speed(6.5)
+  SerialNode() : Node("serial"), max_ball_speed(6.5), mainboard(create_mainboard())
   {
     commands_subscription_ = this->create_subscription<rostron_interfaces::msg::Commands>(
-        "commands", 10, std::bind(&SerialNode::commands_callback, this, _1));
+        "commands", 10, std::bind(&SerialNode::commands_callback, this, _1));    
 
-    std::string port("/dev/ttyACM0");
-    unsigned long baud = 9600;
-
-    serial::Timeout to(serial::Timeout::max(), 1000, 1, 10, 10);
-
-    mySerial = new serial::Serial(port, baud, to);
-
-    RCLCPP_INFO(get_logger(), "Serial open : %d", mySerial->isOpen());
+    RCLCPP_INFO(get_logger(), "Serial open : %d", mainboard.mySerial->isOpen());
   }
 
 private:
+
+  Mainboard create_mainboard() {
+    const auto usb_params = "usb_port";
+    const auto baudrate_params = "baudrate";
+
+    this->declare_parameter<std::string>(usb_params, "/dev/ttyACM0");
+    std::string port = this->get_parameter(usb_params).as_string();
+
+    this->declare_parameter<int>(baudrate_params, 9600);
+    int baudrate = this->get_parameter(baudrate_params).as_int();
+    
+    return Mainboard(port, baudrate);
+  }
+
   /**
    * \brief Callback to send commands for multiple robots.
    */
@@ -97,7 +86,7 @@ private:
         // sending.actions.spin_power = msg.hardware.spin_power;
       }
 
-      mySerial->write((uint8_t*)&sending, sizeof(packet_robot));
+      // mySerial->write((uint8_t*)&sending, sizeof(packet_robot));
     }
 
 
@@ -109,13 +98,12 @@ private:
    */
   rclcpp::Subscription<rostron_interfaces::msg::Commands>::SharedPtr commands_subscription_;
 
+  Mainboard mainboard;
 
   /**
    * \brief Constant about the maximum ball speed of the ball.
    */
   float max_ball_speed;
-
-  serial::Serial* mySerial;
 };
 
 int main(int argc, char *argv[])

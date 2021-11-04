@@ -37,12 +37,12 @@ add_subdirectory(include/rostron_sender/proto)
 SET(
   SRCS_SIM_SENDER
   src/sim_sender.cpp
-  src/net/udp_sender.cpp
+  src/com/socket.cpp
 )
 
 SET(
   HEADERS_SIM_SENDER
-  include/rostron_sender/net/udp_sender.h
+  include/rostron_sender/com/socket.h
 )
 
 add_executable(sim_sender ${SRCS_SIM_SENDER} ${HEADERS_SIM_SENDER})
@@ -64,9 +64,16 @@ ament_export_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${Protobuf_LIBRARIES} 
 SET(
   SRCS_SERIAL_SENDER
   src/serial.cpp
+  src/com/mainboard.cpp
 )
 
-add_executable(serial_sender ${SRCS_SERIAL_SENDER})
+SET(
+  HEADERS_SERIAL_SENDER
+  include/rostron_sender/com/mainboard.h
+)
+
+
+add_executable(serial_sender ${SRCS_SERIAL_SENDER} ${HEADERS_SERIAL_SENDER})
 ament_target_dependencies(serial_sender rclcpp rostron_interfaces serial)
 
 target_include_directories(serial_sender PUBLIC

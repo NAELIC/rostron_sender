@@ -7,7 +7,7 @@
 #include "rostron_interfaces/msg/command.hpp"
 #include "rostron_interfaces/msg/commands.hpp"
 
-#include "rostron_sender/net/udp_sender.h"
+#include "rostron_sender/com/socket.h"
 #include "ssl_simulation_robot_control.pb.h"
 
 using std::placeholders::_1;
