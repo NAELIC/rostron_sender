@@ -22,15 +22,18 @@ typedef struct {
     int16_t t_speed;  // Rotation in [mrad/s]
 
     uint8_t kickPower;  // Kick power (this is a duration in [x25 uS])
-} __attribute__((packed)) packet_robot;
+} __attribute__((packed)) packet_mainboard;
 
 class Mainboard {
    public:
     Mainboard(std::string port, unsigned int baudrate);
     serial::Serial* mySerial;
 
+    void addPacket(uint8_t* packet);
+    void appendToPacket(uint8_t packet);
+    void send();
+
    private:
     uint8_t tmp_packet_[2048];
     size_t tmp_packet_size = 0;
-
 };
